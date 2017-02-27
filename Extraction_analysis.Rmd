@@ -1,0 +1,154 @@
+---
+title: "Opt_3_analysis_script"
+author: "moaraj"
+date: "2/24/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(plyr)
+library(readr)
+library(tidyr)
+library(vioplot)
+```
+
+
+Detach all the packes that are loaded from the CRAN
+```{r}
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+```
+
+
+Import Annotated Files, Tranposed, all commas, spaces and semi colons removed in notepad++. 
+INSERT The metab data catagories in the to first row
+
+```{r}
+Data_Curated_Annotations <- read.csv(file = "moaraj_opt_3.csv")
+Data_Curated_Annotations_transpose <- read.csv(file = "moaraj_opt_3_transpose.csv")
+
+metab_data <- Data_Curated_Annotations_transpose
+metab_data_names <- c("Index", "Extraction", "Mouse", "Strain", "Diet", "Sex", 
+                      as.character(Data_Curated_Annotations$name))
+
+names(metab_data) <- metab_data_names
+metab_data <- metab_data[-which(duplicated(names(metab_data)))]
+
+metab_data <- metab_data %>% 
+  dplyr::mutate_each_(., funs = funs(as.factor), 
+                      vars = c("Index", "Extraction", "Mouse", "Strain", "Diet", "Sex")) 
+```
+
+
+Add indexes for replicaites using the mod function on the sample index
+```{r}
+metab_data <- merge(metab_data %>% mutate(replicate  = paste("rep_", rep(c(1,2), times = dim(metab_data)[1]/2), sep = "")) %>% select(Index, replicate), metab_data, by = "Index")
+#zou need to have unqiue values in the bz mere
+#can be done by selecting multiple columns
+```
+
+
+
+```{r}
+#pdf(file = "TIC_Summary_Statistics.pdf")
+
+strain_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$Strain, 
+                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
+strain_box_TIC + geom_point() + geom_boxplot(outlier.color = "red") 
+ggsave("strain_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
+
+
+
+mouse_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$Mouse, 
+                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
+mouse_box_TIC + geom_point() + geom_boxplot(outlier.color = "red")
+ggsave("mouse_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
+
+
+rep_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$replicate, 
+                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
+rep_box_TIC + geom_point() + geom_boxplot(outlier.color = "red")
+ggsave("rep_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
+
+
+
+blank_data <- filter(metab_data, Mouse == "Blank")
+blank_data_filtered <- blank_data[,8:length(blank_data)]
+blank_data_index <- 1:ncol(blank_data_filtered)
+
+
+TIC_Blank <- ggplot(melt(blank_data), aes(x=variable, y=value, col=Mouse)) 
+TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+ggsave("TIC_Blank_.pdf", width = 30, height = 10, dpi = 200) 
+
+
+TIC_Blank <- NULL
+TIC_Blank <- ggplot(melt(blank_data), aes(x=variable, y= log(value), col=Mouse)) 
+TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+ggsave("TIC_Blank_log.pdf", width = 30, height = 10, dpi = 200) 
+
+TIC_all_mice <- NULL
+TIC_all_mice <- ggplot(melt(metab_data), aes(x=variable, y=value, col=Mouse)) 
+TIC_all_mice + geom_point() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+ggsave("TIC_all_mice_point.pdf", width = 30, height = 10, dpi = 200)
+
+TIC_all_mice <- NULL
+TIC_all_mice <- ggplot(melt(metab_data), aes(x=variable, y=log(value), col=Mouse)) 
+TIC_all_mice + geom_point() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+ggsave("TIC_all_mice_point_log.pdf", width = 30, height = 10, dpi = 200) 
+
+
+
+#dev.off()
+
+```
+
+```{r}
+
+
+blank_rank <- blank_data
+blank_rank$rowMeans <- (rowMeans(blank_data[8:ncol(blank_data)]))
+plot(sort(blank_rank$rowMeans))
+
+metab_rank <- filter(metab_data, Mouse != "Blank")
+
+blank_col_rank <- colMeans(blank_data[8:ncol(blank_data)])[1:300]
+metab_col_rank <- colMeans(metab_data[8:ncol(metab_data)])[1:300]
+average_col_error <- sqrt((metab_col_rank - blank_col_rank)^2)
+
+Error_data <- cbind(blank_col_rank, metab_col_rank)
+Error_data_melt <- melt(Error_data)
+
+pdf(file = "ion_current.pdf", width = 5, height = 5)
+plot(sort(metabj_col_rank), type = "l", log = "y", 
+     #main = "Average Metabolite ION Currents", 
+     xlab = "Metabolite Number",
+     ylab = "Ion Current a.u")
+  
+    lines(sort(blank_col_rank), col = "red", type = "l")
+    lines(sort(   sqrt((metab_col_rank[-301] - blank_col_rank)^2)   ), type = "l", col = "blue")
+dev.off()
+
+
+Error_Plot <- ggplot(Error_data_melt, 
+              aes(x = c(1:300, 1:300),
+                  y=(sort(value)), 
+                  col=Var2)) + annotation_logticks()
+
+Error_Plot + geom_point()
+
+
+
+
+```
+
+
+
+
+

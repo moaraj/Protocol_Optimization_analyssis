@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1488203385112.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3FDC361D",
+    "lastKnownWriteTime" : 4294967296,
+    "last_content_update" : 1488203385112,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "17C6F3A",
+        "caption" : "Error_data_melt",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=Error_data_melt&cache_key=17C6F3A",
+        "displayedObservations" : 1200,
+        "environment" : "",
+        "object" : "Error_data_melt",
+        "preview" : 0,
+        "totalObservations" : 1200,
+        "variables" : 3
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
