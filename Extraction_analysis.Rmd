@@ -6,7 +6,12 @@ output:
   pdf_document: default
   html_document: default
 ---
+Detach all the packes that are loaded from the CRAN
+```{r}
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+```
 
+load all the libraries
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -20,10 +25,6 @@ library(vioplot)
 ```
 
 
-Detach all the packes that are loaded from the CRAN
-```{r}
-lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
-```
 
 
 Import Annotated Files, Tranposed, all commas, spaces and semi colons removed in notepad++. 
