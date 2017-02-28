@@ -22,14 +22,11 @@ library(plyr)
 library(readr)
 library(tidyr)
 library(vioplot)
+library(ggthemes)
 ```
-
-
-
 
 Import Annotated Files, Tranposed, all commas, spaces and semi colons removed in notepad++. 
 INSERT The metab data catagories in the to first row
-
 ```{r}
 Data_Curated_Annotations <- read.csv(file = "moaraj_opt_3.csv")
 Data_Curated_Annotations_transpose <- read.csv(file = "moaraj_opt_3_transpose.csv")
@@ -54,30 +51,57 @@ metab_data <- merge(metab_data %>% mutate(replicate  = paste("rep_", rep(c(1,2),
 #can be done by selecting multiple columns
 ```
 
-
-
+Perform Summary Statistics on the Mouse Level
 ```{r}
 #pdf(file = "TIC_Summary_Statistics.pdf")
+strain_box_TIC <- ggplot(data = metab_data, 
+                  aes(x = metab_data$Strain, 
+                  y = rowMeans(metab_data[,8:ncol(metab_data)])))
 
-strain_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$Strain, 
-                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
-strain_box_TIC + geom_point() + geom_boxplot(outlier.color = "red") 
-ggsave("strain_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
+strain_box_TIC + geom_point() + geom_boxplot(outlier.color = "red") +
+                 labs(list( x = "BXD Mouse Strain", y = "Ion Current a.u.")) +
+                 theme_minimal() +
+                 theme(axis.text.x=element_text(angle=90, hjust=1), 
+                 plot.background = element_rect(fill = "white"),
+                 panel.grid.major.y = element_line(colour = "grey"))
 
-
-
-mouse_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$Mouse, 
-                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
-mouse_box_TIC + geom_point() + geom_boxplot(outlier.color = "red")
-ggsave("mouse_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
-
-
-rep_box_TIC <- ggplot(data = metab_data, aes(x = metab_data$replicate, 
-                                   y = rowMeans(metab_data[,8:ncol(metab_data)])))
-rep_box_TIC + geom_point() + geom_boxplot(outlier.color = "red")
-ggsave("rep_box_TIC.pdf", width = 16, height = 9, dpi = 200) 
+ggsave("strain_box_TIC.pdf", width = 5, height = 5, dpi = 100) 
 
 
+mouse_box_TIC <- ggplot(data = metab_data,
+                 aes(x = metab_data$Mouse, 
+                 y = rowMeans(metab_data[,8:ncol(metab_data)])))
+
+mouse_box_TIC +  geom_point() + geom_boxplot(outlier.color = "red") + 
+                 labs(list(x = "Mouse Ear Tag Number", y = "Ion Current a.u.")) +
+                 theme_minimal() +
+                 theme(axis.text.x=element_text(angle=90, hjust=1), 
+                 plot.background = element_rect(fill = "white"),
+                 panel.grid.major.y = element_line(colour = "grey"),
+                 panel.background = element_rect(colour = "grey", size=1, fill=NA, linetype = "solid"))
+
+
+                 ggsave("mouse_box_TIC.pdf", width = 5, height = 5, dpi = 100) 
+
+
+rep_box_TIC <- ggplot(data = metab_data, 
+                      aes(x = metab_data$replicate, 
+                          y = rowMeans(metab_data[,8:ncol(metab_data)])))
+
+rep_box_TIC + geom_point() + geom_boxplot(outlier.color = "red") + 
+              labs(list(x = "Freeze Thaw Replicates", y = "Ion Current a.u.")) +
+              theme_minimal() +
+              theme(axis.text.x=element_text(angle=0, hjust=1), 
+              plot.background = element_rect(fill = "white"),
+              panel.grid.major.y = element_line(colour = "grey"))
+
+ggsave("rep_box_TIC.pdf", width = 5, height = 5, dpi = 100) 
+```
+
+
+
+Perform Summary Statistics on the Metabolite Level
+```{r}
 
 blank_data <- filter(metab_data, Mouse == "Blank")
 blank_data_filtered <- blank_data[,8:length(blank_data)]
@@ -85,34 +109,33 @@ blank_data_index <- 1:ncol(blank_data_filtered)
 
 
 TIC_Blank <- ggplot(melt(blank_data), aes(x=variable, y=value, col=Mouse)) 
-TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1))
+TIC_Blank + xlab("Effect of Freeze Thaw") + ylab("Ion Current a.u.")
 ggsave("TIC_Blank_.pdf", width = 30, height = 10, dpi = 200) 
 
 
-TIC_Blank <- NULL
-TIC_Blank <- ggplot(melt(blank_data), aes(x=variable, y= log(value), col=Mouse)) 
-TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+TIC_Blank_log <- NULL
+TIC_Blank_log <- ggplot(melt(blank_data), aes(x=variable, y= log(value), col=Mouse)) 
+TIC_Blank_log + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1))
+TIC_Blank_log + labs(title = "") + xlab("Effect of Freeze Thaw") + ylab("Ion Current a.u.")
 ggsave("TIC_Blank_log.pdf", width = 30, height = 10, dpi = 200) 
 
 TIC_all_mice <- NULL
 TIC_all_mice <- ggplot(melt(metab_data), aes(x=variable, y=value, col=Mouse)) 
-TIC_all_mice + geom_point() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+TIC_all_mice + geom_point() + theme(axis.text.x=element_text(angle=90, hjust=1))
+TIC_all_mice + labs(title = "") + xlab("Effect of Freeze Thaw") + ylab("Ion Current a.u.")
 ggsave("TIC_all_mice_point.pdf", width = 30, height = 10, dpi = 200)
 
 TIC_all_mice <- NULL
 TIC_all_mice <- ggplot(melt(metab_data), aes(x=variable, y=log(value), col=Mouse)) 
 TIC_all_mice + geom_point() + theme(axis.text.x=element_text(angle=90, hjust=1)) 
+TIC_all_mice + labs(title = "") + xlab("Effect of Freeze Thaw") + ylab("Ion Current a.u.")
+
 ggsave("TIC_all_mice_point_log.pdf", width = 30, height = 10, dpi = 200) 
-
-
-
-#dev.off()
-
 ```
 
+
 ```{r}
-
-
 blank_rank <- blank_data
 blank_rank$rowMeans <- (rowMeans(blank_data[8:ncol(blank_data)]))
 plot(sort(blank_rank$rowMeans))
@@ -136,7 +159,7 @@ plot(sort(metabj_col_rank), type = "l", log = "y",
     lines(sort(   sqrt((metab_col_rank[-301] - blank_col_rank)^2)   ), type = "l", col = "blue")
 dev.off()
 
-
+pdf
 Error_Plot <- ggplot(Error_data_melt, 
               aes(x = c(1:300, 1:300),
                   y=(sort(value)), 
