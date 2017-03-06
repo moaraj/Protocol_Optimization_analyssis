@@ -99,18 +99,22 @@ ggsave("rep_box_TIC.pdf", width = 5, height = 5, dpi = 100)
 ```
 
 
-
 Perform Summary Statistics on the Metabolite Level
 ```{r}
 
 blank_data <- filter(metab_data, Mouse == "Blank")
-blank_data_filtered <- blank_data[,8:length(blank_data)]
+blank_data_filtered <- blank_data[1:200]
 blank_data_index <- 1:ncol(blank_data_filtered)
 
+TIC_Blank = NULL
+TIC_Blank = ggplot(melt(blank_data_filtered), aes(x=variable, y=value, col=Mouse)) 
+TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1)) +
+            labs(list(x = "Metabolite Index", y = "Ion Current a.u.")) +
+            theme_minimal() +
+            theme(axis.text.x=element_text(angle=90, hjust=1), 
+            plot.background = element_rect(fill = "white"),
+            panel.grid.major.y = element_line(colour = "grey"))
 
-TIC_Blank <- ggplot(melt(blank_data), aes(x=variable, y=value, col=Mouse)) 
-TIC_Blank + geom_boxplot() + theme(axis.text.x=element_text(angle=90, hjust=1))
-TIC_Blank + xlab("Effect of Freeze Thaw") + ylab("Ion Current a.u.")
 ggsave("TIC_Blank_.pdf", width = 30, height = 10, dpi = 200) 
 
 
